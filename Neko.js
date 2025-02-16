@@ -3,6 +3,8 @@ export const Actions = {
   sleep: 'sleep',
   itch: 'itch',
   scratch: 'scratch',
+  wscratch: 'wscratch',
+  escratch: 'escratch',
   wash: 'wash',
   alert: 'alert',
   still: 'still',
