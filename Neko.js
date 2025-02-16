@@ -85,6 +85,8 @@ export class Neko {
       default:
         break;
     }
+    this.lastFrame = 0;
+    this.updateAnimation();
   }
 
   updateMovement() {

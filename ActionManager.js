@@ -254,12 +254,15 @@ class PropSpotAction extends Action {
         case ActionPhase.runTo:
           if (this.spotOffGround) {
             this.phase = ActionPhase.climbTo;
-            this.targetY = this.prop.y + this.spot.y;
+            // Climb mostly up into spot before jumping to end
+            this.targetY = this.prop.y + this.spot.y + 8;
           } else {
             this.phase = ActionPhase.animate;
           }
           break;
         case ActionPhase.climbTo:
+          // Fix the previous nudge
+          this.cat.y -= 8;
           this.phase = ActionPhase.animate;
           break;
         default:
