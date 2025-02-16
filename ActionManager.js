@@ -53,8 +53,7 @@ export class ActionManager {
     ];
     let actions = [];
     for (let animation of animations) {
-      let targetX = Math.random() * (innerWidth - 64) + 32;
-      let targetY = Math.random() * (innerHeight - 64) + 32;
+      let { x: targetX, y: targetY } = this.getEmptyLocation();
       if (animation === 'scratch') {
         const dir = Math.floor(Math.random() * 4);
         if (dir === 0) {
@@ -86,6 +85,35 @@ export class ActionManager {
       ));
     }
     return actions;
+  }
+
+  getEmptyLocation() {
+    let tries = 1000;
+    let x, y;
+    while (tries > 0) {
+      x = Math.random() * (innerWidth - 64) + 32;
+      y = Math.random() * (innerHeight - 64) + 32;
+      let empty = true;
+      for (let prop of this.props) {
+        // Big objects are ones we can just hide behind
+        if (prop.width * prop.height > 64 * 64) {
+          continue;
+        }
+        let dx = x - prop.x + prop.width / 2;
+        let dy = y - prop.y + prop.height / 2;
+
+        // Vaguely too close
+        if (dx * dx + dy * dy < prop.width * prop.width + prop.height * prop.height) {
+          empty = false;
+          break;
+        }
+      }
+      if (empty) {
+        break;
+      }
+      tries--;
+    }
+    return { x, y };
   }
 }
 
