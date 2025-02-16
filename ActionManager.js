@@ -152,6 +152,7 @@ class Action {
     } else {
       this.cat.y += velY;
     }
+    this.cat.z = this.cat.y;
   }
 
   updateClimbTo(dt, targetX, targetY) {
@@ -275,9 +276,11 @@ class PropSpotAction extends Action {
         if (this.duration < 0) {
           this.spot.occupied = false;
         }
+        this.cat.z = this.prop.z + 5;
         break;
       case ActionPhase.climbTo:
         this.updateClimbTo(dt, this.targetX, this.targetY);
+        this.cat.z = this.prop.z + 10;
         break;
       case ActionPhase.runTo:
       default:

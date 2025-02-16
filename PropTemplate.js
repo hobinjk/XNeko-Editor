@@ -1,10 +1,11 @@
 import { Actions } from "./Neko";
 
 export class PropTemplate {
-  constructor(width, height, spots) {
+  constructor(width, height, spots, isFloorProp) {
     this.width = width;
     this.height = height;
     this.spots = spots;
+    this.isFloorProp = isFloorProp;
     this.container = document.createElement('div');
     this.container.classList.add('prop');
   }
@@ -31,7 +32,7 @@ export class BedTemplate extends PropTemplate {
   constructor() {
     super(32, 32, [
       new Spot(16, 16, [Actions.sleep]),
-    ]);
+    ], true);
     this.container.style.background = 'white';
     this.container.style.width = '32px';
     this.container.style.height = '32px';
@@ -40,7 +41,7 @@ export class BedTemplate extends PropTemplate {
 
 export class BookshelfTemplate extends PropTemplate {
   constructor() {
-    super(64, 128 + 32, []);
+    super(64, 128 + 32, [], false);
     for (let y = 0; y < this.height; y += 32) {
       let actions = [Actions.sleep];
       if (y === 0) {

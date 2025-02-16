@@ -1,3 +1,5 @@
+import { Z_INDEX_BASE } from "./constants";
+
 const ANIMATION_FPS = 10;
 export const Actions = {
   sleep: 'sleep',
@@ -37,6 +39,7 @@ export class Neko {
     this.name = name;
     this.x = Math.random() * innerWidth;
     this.y = Math.random() * innerHeight;
+    this.z = this.y;
     this.elt = document.createElement('div');
     this.elt.classList.add('cat');
     this.elt.style.backgroundImage = `url(spritesheets/${name}.png)`;
@@ -87,5 +90,6 @@ export class Neko {
   updateMovement() {
     this.elt.style.top = `${this.y}px`;
     this.elt.style.left = `${this.x}px`;
+    this.elt.style.zIndex = Math.round(this.z + Z_INDEX_BASE);
   }
 }
