@@ -1,11 +1,12 @@
 import { Spritesheet } from "./Neko";
 
 export class ActionManager {
-  constructor(cats, props) {
+  constructor(cats, props, editorMode) {
     this.cats = cats;
     this.props = props;
     this.actions = new Array(this.cats.length);
     this.lastUpdate = Date.now();
+    this.editorMode = editorMode;
   }
 
   update() {
@@ -24,16 +25,22 @@ export class ActionManager {
   }
 
   getAction(cat) {
-    let actions = this.getUndirectedActions(cat);
+    let directedActions = [];
 
+    let baseDuration = this.editorMode ? 3000 : 20000;
+    let scaledDuration = this.editorMode ? 3000 : 40000;
     for (let prop of this.props) {
       for (let spot of prop.spots) {
         if (spot.occupied) {
           continue;
         }
-        let duration = Math.random() * 40000 + 20000;
-        actions.push(new PropSpotAction(cat, prop, spot, duration));
+        let duration = Math.random() * scaledDuration + baseDuration;
+        directedActions.push(new PropSpotAction(cat, prop, spot, duration));
       }
+    }
+    let actions = directedActions;
+    if (directedActions.length === 0 || !this.editorMode) {
+      actions = actions.concat(this.getUndirectedActions(cat));
     }
     return actions[Math.floor(Math.random() * actions.length)];
   }

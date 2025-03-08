@@ -17,4 +17,8 @@ export class Prop {
     this.elt.style.zIndex = Math.round(Z_INDEX_BASE + this.z);
     document.body.appendChild(this.elt);
   }
+
+  remove() {
+    document.body.removeChild(this.elt);
+  }
 }
