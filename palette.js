@@ -1,51 +1,39 @@
 import { silhouette, kMeans, distanceSquared, distance } from "../silly/src/kmeans";
-import { ActionManager } from "./ActionManager";
-import { Neko, catNames } from "./Neko";
+import { catNames } from "./Neko";
 
-let input = document.getElementById('image-input');
+const DEBUG = false;
 
-function onUploadImageChange(event) {
-  let file = event.target.files[0];
-  if (!file) {
-    return;
+export async function getBestSpritesheetForImage(image) {
+  let canvas = document.createElement('canvas');
+  let width = 64;
+  let height = 64;
+  canvas.width = width;
+  canvas.height = height;
+  let gfx = canvas.getContext('2d');
+  gfx.drawImage(image, 0, 0, width, height);
+  let imageData = gfx.getImageData(0, 0, width, height);
+  let bestClusters = palettize(imageData);
+  let bestScore = 0;
+  let bestName = null;
+  console.log('hhmmmm?', spritesheets);
+  for (let name of Object.keys(spritesheets)) {
+    let sheet = spritesheets[name];
+    if (!sheet) {
+      continue;
+    }
+    let score = getSpritesheetScore(sheet, bestClusters);
+    if (score < bestScore || !bestName) {
+      bestScore = score;
+      bestName = name;
+    }
   }
-  let reader = new FileReader();
-  reader.onload = () => {
-    let image = document.createElement('img');
-    image.src = reader.result;
-    image.onload = () => {
-      let canvas = document.createElement('canvas');
-      let width = 64;
-      let height = 64;
-      canvas.width = width;
-      canvas.height = height;
-      let gfx = canvas.getContext('2d');
-      gfx.drawImage(image, 0, 0, width, height);
-      let imageData = gfx.getImageData(0, 0, width, height);
-      let bestClusters = palettize(imageData);
-      let bestScore = 0;
-      let bestName = null;
-      for (let name of Object.keys(spritesheets)) {
-        let sheet = spritesheets[name];
-        if (!sheet) {
-          continue;
-        }
-        let score = getSpritesheetScore(sheet, bestClusters);
-        if (score < bestScore || !bestName) {
-          bestScore = score;
-          bestName = name;
-        }
-      }
-      if (bestName) {
-        console.log('best', bestName);
-        drawPalettedSpritesheet(spritesheets[bestName], bestClusters);
-      }
-    };
-  };
-  reader.readAsDataURL(file);
+  if (bestName) {
+    console.log('best', bestName);
+    return await getPalettedSpritesheet(spritesheets[bestName], bestClusters);
+  } else {
+    console.error('unable to find spritesheet');
+  }
 }
-
-input.onchange = onUploadImageChange;
 
 function palettize(imageData) {
   let points = [];
@@ -78,7 +66,9 @@ function palettize(imageData) {
   bestClusters = allClusters[6];
 
   console.log(bestScore, bestClusters);
-  drawPalettes(allClusters);
+  if (DEBUG) {
+    drawPalettes(allClusters);
+  }
   return bestClusters;
 }
 
@@ -169,7 +159,7 @@ function getSpritesheetScore(imageData, bestClusters) {
   // return score / scoreCount;
 }
 
-function drawPalettedSpritesheet(imageData, bestClusters) {
+function getPalettedSpritesheet(imageData, bestClusters) {
   let width = imageData.width;
   let height = imageData.height;
   let canvas = document.createElement('canvas');
@@ -212,11 +202,13 @@ function drawPalettedSpritesheet(imageData, bestClusters) {
     }
   }
   gfx.putImageData(outID, 0, 0);
-  document.body.appendChild(canvas);
 
-  canvas.toBlob(blob => {
-    cats.push(new Neko('custom', URL.createObjectURL(blob)));
-  }, 'image/png');
+  console.log('hhmmmm?');
+  return new Promise((resolve) => {
+    canvas.toBlob(blob => {
+      resolve(URL.createObjectURL(blob));
+    }, 'image/png');
+  });
 }
 
 
@@ -231,14 +223,3 @@ async function loadSpritesheets() {
 }
 
 loadSpritesheets();
-
-let cats = [];
-
-// Preview
-let actionManager = new ActionManager(cats, [], false);
-function update() {
-  actionManager.update();
-  window.requestAnimationFrame(update);
-}
-
-update();
