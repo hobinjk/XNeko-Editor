@@ -17,8 +17,8 @@ export const catNames = [
   // 'captain-goodnight',
   // 'caz',
   // 'coke-bottle',
-  'colourful',
-  'dave',
+  // 'colourful',
+  // 'dave',
   'deedee',
   'dog',
   // 'doom',
@@ -36,7 +36,7 @@ export const catNames = [
   'kina',
   'kuramecha',
   'lucky',
-  'lucy-dog',
+  // 'lucy-dog',
   'lucy',
   'marmalade',
   'mermaid',
@@ -44,8 +44,8 @@ export const catNames = [
   'mike',
   // 'mini',
   'moka',
-  'multi',
-  'nekocool',
+  // 'multi',
+  // 'nekocool',
   'neon',
   'orange',
   // 'pac-man',
@@ -54,7 +54,7 @@ export const catNames = [
   // 'penguin',
   'pink-nose-neko',
   'pink',
-  'rainbow',
+  // 'rainbow',
   // 'red-bsd-daemon',
   'robot',
   // 'rocket',
@@ -114,14 +114,18 @@ export const Spritesheet = {
 };
 
 export class Neko {
-  constructor(name) {
+  constructor(name, url) {
     this.name = name;
     this.x = Math.random() * innerWidth;
     this.y = Math.random() * innerHeight;
     this.z = this.y;
     this.elt = document.createElement('div');
     this.elt.classList.add('cat');
-    this.elt.style.backgroundImage = `url(spritesheets/${name}.png)`;
+    if (url) {
+      this.elt.style.backgroundImage = `url(${url})`;
+    } else {
+      this.elt.style.backgroundImage = `url(spritesheets/${name}.png)`;
+    }
     document.body.appendChild(this.elt);
     this.lastFrame = -1;
     this.animation = 'wrun';
