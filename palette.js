@@ -219,6 +219,7 @@ let spritesheets = {};
 
 async function loadSpritesheets() {
   for (let name of catNames) {
+    // let url = browser.runtime.getURL(`/features/xneko/spritesheets/${name}.png`);
     let url = `spritesheets/${name}.png`
     spritesheets[name] = await loadSpritesheet(url);
   }
