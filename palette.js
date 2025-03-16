@@ -91,9 +91,10 @@ function drawPalettes(allClusters) {
 }
 
 function loadSpritesheet(url) {
-  return new Promise((resolve) => {
-    let image = document.createElement('img');
+  return new Promise((resolve, reject) => {
+    let image = new Image();
     image.src = url;
+    // image.crossOrigin = 'anonymous';
     image.onload = () => {
       let canvas = document.createElement('canvas');
       let width = image.naturalWidth;
@@ -104,6 +105,10 @@ function loadSpritesheet(url) {
       gfx.drawImage(image, 0, 0, width, height);
       let imageData = gfx.getImageData(0, 0, width, height);
       resolve(imageData);
+    };
+    image.onerror = (error) => {
+      console.error('loadSpritesheet error', error);
+      reject(error);
     };
   });
 }
