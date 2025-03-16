@@ -18,6 +18,7 @@ export class PropTemplate {
     let { width, height, isFloorProp } = prop;
     let spots = prop.spots.map(spot => new Spot(spot.x, spot.y, spot.allowedActions));
     let image = document.createElement('img');
+    image.draggable = false;
     image.style.width = width + 'px';
     image.style.height = height + 'px';
     // TODO xss prevention by forcing it to be a data base64 url

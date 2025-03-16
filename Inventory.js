@@ -41,7 +41,7 @@ export class Inventory {
   }
 
   onPropTemplatePointerDown(event) {
-    let ptId = event.target.dataset.id;
+    let ptId = event.currentTarget.dataset.id;
     if (!ptId) {
       console.warn('event without ptId', event);
       return;

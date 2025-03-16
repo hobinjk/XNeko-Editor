@@ -16,6 +16,9 @@ body {
   pointer-events: none;
   image-rendering: pixelated;
 }
+.prop > img {
+  user-select: none;
+}
 
 .spot-marker {
   position: absolute;
@@ -34,8 +37,20 @@ body {
 }
 
 .inventory > .prop {
-  position: relative;
-  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 3px solid #777;
   border-radius: 2px;
+  width: 64px;
+  height: 64px;
+  padding: 4px;
+  overflow: hidden;
+  position: relative;
+  pointer-events: auto;
+}
+
+.inventory > .prop > img {
+  max-width: 60px;
+  max-height: 60px;
 }
