@@ -1,4 +1,4 @@
-import { Z_INDEX_BASE } from "./constants";
+import { Z_INDEX_BASE } from "./constants.js";
 
 export const catNames = [
   'ace',

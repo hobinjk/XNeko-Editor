@@ -1,5 +1,5 @@
-import { silhouette, kMeans, distanceSquared, distance } from "../silly/src/kmeans";
-import { catNames } from "./Neko";
+import { silhouette, kMeans, distanceSquared, distance } from "./kmeans.js";
+import { catNames } from "./Neko.js";
 
 const DEBUG = false;
 

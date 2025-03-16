@@ -1,4 +1,4 @@
-import { Spritesheet } from "./Neko";
+import { Spritesheet } from "./Neko.js";
 
 export class ActionManager {
   constructor(cats, props, editorMode) {
