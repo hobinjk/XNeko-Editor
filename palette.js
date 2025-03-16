@@ -15,7 +15,6 @@ export async function getBestSpritesheetForImage(image) {
   let bestClusters = palettize(imageData);
   let bestScore = 0;
   let bestName = null;
-  console.log('hhmmmm?', spritesheets);
   for (let name of Object.keys(spritesheets)) {
     let sheet = spritesheets[name];
     if (!sheet) {
@@ -208,7 +207,6 @@ function getPalettedSpritesheet(imageData, bestClusters) {
   }
   gfx.putImageData(outID, 0, 0);
 
-  console.log('hhmmmm?');
   return new Promise((resolve) => {
     canvas.toBlob(blob => {
       resolve(URL.createObjectURL(blob));
