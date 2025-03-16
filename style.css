@@ -26,3 +26,16 @@ body {
   height: 4px;
   transform: translate(-50%, -50%);
 }
+
+.inventory {
+  position: absolute;
+  bottom: 0;
+  border: 1px solid red;
+}
+
+.inventory > .prop {
+  position: relative;
+  pointer-events: auto;
+  border: 3px solid #777;
+  border-radius: 2px;
+}
