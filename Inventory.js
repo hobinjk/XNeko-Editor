@@ -82,8 +82,8 @@ export class Inventory {
     let x = event.clientX;
     let y = event.clientY;
     if (this.settings.snapToGrid) {
-      x = this.settings.snapToGrid(x);
-      y = this.settings.snapToGrid(y);
+      x = this.settings.snapXToGrid(x);
+      y = this.settings.snapYToGrid(y);
     }
 
     let prop = new Prop(x, y, pt);
@@ -102,8 +102,8 @@ export class Inventory {
     let x = event.clientX;
     let y = event.clientY;
     if (this.settings.snapToGrid) {
-      x = this.settings.snapToGrid(x);
-      y = this.settings.snapToGrid(y);
+      x = this.settings.snapXToGrid(x);
+      y = this.settings.snapYToGrid(y);
     }
     let { prop } = this.activeDrag;
     prop.moveTo(x - prop.width / 2, y - prop.height / 2);
