@@ -16,7 +16,7 @@ const inventory = new Inventory({
   bedTemplate,
   bookshelfTemplate,
 ]);
-document.body.appendChild(inventory.container);
+inventory.add();
 
 // for (let i = 0; i < 10; i++) {
 //   let x = Math.round((Math.random() * 0.8 + 0.1) * window.innerWidth / 16) * 16;

@@ -10,7 +10,28 @@ export class Inventory {
 
     this.container = document.createElement('div');
     this.container.classList.add('inventory');
-    this.open = false;
+
+    this.settingsContainer = document.createElement('div');
+    this.settingsContainer.classList.add('settings');
+
+    this.openButton = document.createElement('div');
+    this.openButton.classList.add('open-button');
+    this.openButton.textContent = '+';
+
+    this.openButton.addEventListener('click', () => {
+      this.container.classList.toggle('open');
+      this.settingsContainer.classList.remove('open');
+    });
+
+    this.settingsButton = document.createElement('div');
+    this.settingsButton.classList.add('settings-button');
+    this.settingsButton.textContent = 's';
+
+    this.settingsButton.addEventListener('click', () => {
+      this.settingsContainer.classList.toggle('open');
+      this.container.classList.remove('open');
+    });
+
 
     this.activeDrag = null;
     this.onPropTemplatePointerDown = this.onPropTemplatePointerDown.bind(this);
@@ -22,6 +43,13 @@ export class Inventory {
 
 
     this.addPropTemplates();
+  }
+
+  add() {
+    document.body.appendChild(this.openButton);
+    document.body.appendChild(this.settingsButton);
+    document.body.appendChild(this.container);
+    document.body.appendChild(this.settingsContainer);
   }
 
   addPropTemplates() {
