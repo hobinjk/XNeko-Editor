@@ -1,8 +1,24 @@
 import { Z_INDEX_BASE } from "./constants.js";
+import { UndirectedAction } from "./ActionManager.js";
 
+// Minimal list since each evaluation takes time
 export const catNames = [
   'ace',
   'air',
+  'earth',
+  'fire',
+  'kina-nothoughts',
+  'marmalade',
+  'pink',
+  'rose',
+  'spirit',
+  'water',
+];
+
+export const allCatNames = [
+  'ace',
+  'air',
+  'anik',
   // 'alien',
   'black',
   'black2',
@@ -23,7 +39,7 @@ export const catNames = [
   'dog',
   // 'doom',
   'earth',
-  'face',
+  // 'face',
   'fancy',
   // 'ff3mog',
   'fire',
@@ -33,7 +49,7 @@ export const catNames = [
   // 'green-ghost',
   // 'holiday',
   'jess',
-  'kina',
+  'kina-nothoughts',
   'kuramecha',
   'lucky',
   // 'lucy-dog',
@@ -114,10 +130,26 @@ export const Spritesheet = {
 };
 
 export class Neko {
-  constructor(name, url) {
+  constructor(actionManager, name, url, visitDuration, data) {
+    this.actionManager = actionManager;
+    this.visitDurationLeft = visitDuration;
     this.name = name;
+    this.data = data;
     this.x = Math.random() * innerWidth;
     this.y = Math.random() * innerHeight;
+
+    // Place off the screen
+    let offX = Math.random() < 0.5;
+    if (offX) {
+      this.x = this.x < innerWidth / 2 ?
+        -100 :
+        innerWidth + 100;
+    } else {
+      this.y = this.y < innerHeight / 2 ?
+        -200 :
+        innerHeight + 200;
+    }
+
     this.z = this.y;
     this.elt = document.createElement('div');
     this.elt.classList.add('cat');
@@ -132,7 +164,26 @@ export class Neko {
     this.animationIndex = 0;
     this.animationScale = 1;
 
-    this.createInfoCard();
+    if (this.data) {
+      this.createInfoCard();
+
+      this.infoCard.classList.add('info-card-open');
+      this.showingInitialInfoCard = true;
+      this.closeInfoCardTimeout = null;
+    }
+
+    this.createHeart();
+
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerDown = this.onPointerDown.bind(this);
+
+    this.elt.addEventListener('pointermove', this.onPointerMove);
+    this.elt.addEventListener('pointerdown', this.onPointerDown);
+  }
+
+  remove() {
+    document.body.removeChild(this.elt);
+    this.actionManager = null;
   }
 
   createInfoCard() {
@@ -143,16 +194,18 @@ export class Neko {
         <img src="" class="info-card-avatar" />
         <p class="info-card-name"></p>
       </div>
-      <div class="info-card-likes">Likes: <a class="info-card-post"></a></div>
+      <div class="info-card-likes">Likes: <a class="info-card-post" target="_blank"></a></div>
       <div class="info-card-visits">Visits: <span class="info-card-visit-count"></span></div>
     `;
     this.infoCard.innerHTML = template;
+    let avatar = this.infoCard.querySelector('.info-card-avatar');
+    avatar.src = this.data.avatarSrc;
     let name = this.infoCard.querySelector('.info-card-name');
     name.textContent = this.name;
 
     let post = this.infoCard.querySelector('.info-card-post');
     post.textContent = 'this post';
-    post.href = '#placeholder';
+    post.href = this.data.postUrl;
 
     let visits = this.infoCard.querySelector('.info-card-visit-count');
     visits.textContent = 4;
@@ -160,7 +213,43 @@ export class Neko {
     this.elt.appendChild(this.infoCard);
   }
 
-  update() {
+  createHeart() {
+    this.heart = document.createElement('img');
+    // this.heart.src = browser.runtime.getURL(`/features/xneko/sprites/redheart.png`);
+
+    this.heart.classList.add('cat-heart');
+    this.elt.appendChild(this.heart);
+  }
+
+
+  onPointerMove() {
+    if (!this.infoCard) {
+      return;
+    }
+    this.openInfoCard();
+    this.closeInfoCard(5000);
+  }
+
+  onPointerDown() {
+    if (!this.actionManager) {
+      return;
+    }
+    let action = new UndirectedAction(
+      this,
+      'alert',
+      1500,
+      this.x,
+      this.y,
+    );
+    this.actionManager.setAction(this, action);
+    this.heart.classList.add('shown');
+    setTimeout(() => {
+      this.heart.classList.remove('shown');
+    }, 1200);
+  }
+
+  update(dt) {
+    this.visitDurationLeft -= dt;
     this.updateMovement();
     this.updateAnimation();
   }
@@ -199,7 +288,26 @@ export class Neko {
     this.updateAnimation();
   }
 
+  openInfoCard() {
+    this.infoCard.classList.add('info-card-open');
+  }
+
+  closeInfoCard(delayMs) {
+    if (this.closeInfoCardTimeout) {
+      clearTimeout(this.closeInfoCardTimeout);
+    }
+    this.closeInfoCardTimeout = setTimeout(() => {
+      this.infoCard.classList.remove('info-card-open');
+    }, delayMs);
+  }
+
   updateMovement() {
+    if (this.showingInitialInfoCard) {
+      if (this.x > 0 && this.y > 0 && this.x < innerWidth && this.y < innerHeight) {
+        this.showingInitialInfoCard = false;
+        this.closeInfoCard(10000);
+      }
+    }
     this.elt.style.top = `${this.y}px`;
     this.elt.style.left = `${this.x}px`;
     this.elt.style.zIndex = Math.round(this.z + Z_INDEX_BASE);

@@ -1,7 +1,8 @@
 import { ActionManager } from './ActionManager.js';
+import { AnimatingCatsSpotPalette } from './AnimatingCatsSpotPalette.js';
 import { Neko, Spritesheet, catNames } from './Neko.js';
 import { Prop } from './Prop.js';
-import { BedTemplate, BookshelfTemplate, PropTemplate } from './PropTemplate.js';
+import { PropTemplate } from './PropTemplate.js';
 
 import GUI from 'lil-gui';
 
@@ -27,8 +28,8 @@ let prop = {
     };
     prop.spots.push(spot);
     let folder = gui.addFolder('Spot');
-    folder.add(spot, 'x').onChange(onPropChange);
-    folder.add(spot, 'y').onChange(onPropChange);
+    spot.controlX = folder.add(spot, 'x').onChange(onPropChange);
+    spot.controlY = folder.add(spot, 'y').onChange(onPropChange);
     let aaFolder = folder.addFolder('Allowed Actions');
     let aaMap = {
     };
@@ -44,7 +45,11 @@ let prop = {
     spotId += 1;
   },
   save: function() {
-    console.log(prop);
+    const template = actionManager.props[0].propTemplate.serialize();
+    const templateText = JSON.stringify(template, null, 2);
+    navigator.clipboard.writeText(templateText).catch(e => {
+      console.warn(e);
+    });
     onPropChange();
   },
   uploadImage: function() {
@@ -62,20 +67,19 @@ function onPropChange() {
   template.addSpotMarkers();
   let x = innerWidth / 2;
   let y = innerHeight / 2;
-  actionManager.props.push(new Prop(x, y, template));
-  for (let i = 0; i < 5; i++) {
-    let x = innerWidth / 6 * (Math.random() * 4 + 1);
-    let y = innerHeight / 6 * (Math.random() * 4 + 1);
-    actionManager.props.push(new Prop(x, y, template));
-  }
+  actionManager.props.push(new Prop(null, x, y, template));
+  // for (let i = 0; i < 5; i++) {
+  //   let x = innerWidth / 6 * (Math.random() * 4 + 1);
+  //   let y = innerHeight / 6 * (Math.random() * 4 + 1);
+  //   actionManager.props.push(new Prop(null, x, y, template));
+  // }
 }
 gui.add(prop, 'isFloorProp').name('Prop lies flat on floor').onChange(onPropChange);
-gui.add(prop, 'width').onChange(onPropChange);
-gui.add(prop, 'height').onChange(onPropChange);
+let widthControl = gui.add(prop, 'width').onChange(onPropChange);
+let heightControl = gui.add(prop, 'height').onChange(onPropChange);
 gui.add(prop, 'uploadImage').name('Upload Image');
 gui.add(prop, 'addSpot').onChange(onPropChange);
 gui.add(prop, 'save');
-
 
 uploadImageInput.onchange = onUploadImageChange;
 
@@ -87,23 +91,35 @@ function onUploadImageChange(event) {
   let reader = new FileReader();
   reader.onload = () => {
     prop.src = reader.result;
+    let image = document.createElement('img');
+    image.onload = () => {
+      widthControl.setValue(image.naturalWidth);
+      heightControl.setValue(image.naturalHeight);
+    };
+    image.src = prop.src;
     onPropChange();
   };
   reader.readAsDataURL(file);
 }
 
-let cats = [
-  catNames[0],
-  catNames[1],
-  catNames[2],
-  catNames[3],
-].map(name => new Neko(name));
+let cats = [];
 
 // Preview
 let actionManager = new ActionManager(cats, [], true);
 function update() {
   actionManager.update();
+  palette.update();
   window.requestAnimationFrame(update);
 }
+
+// for (let i = 0; i < 4; i++) {
+//   let name = catNames[i];
+//   cats.push(new Neko(actionManager, name, null, 10000000, {
+//     avatarSrc: '',
+//     postUrl: '',
+//   }));
+// }
+
+let palette = new AnimatingCatsSpotPalette(prop);
 
 update();

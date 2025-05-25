@@ -1,9 +1,9 @@
-import { silhouette, kMeans, distanceSquared, distance } from "./kmeans.js";
+import { kMeans, distanceSquared, distance } from "./kmeans.js";
 import { catNames } from "./Neko.js";
 
 const DEBUG = false;
 
-export async function getBestSpritesheetForImage(image) {
+export async function getBestPaletteAndSpritesheetForImage(image) {
   let canvas = document.createElement('canvas');
   let width = 64;
   let height = 64;
@@ -15,23 +15,49 @@ export async function getBestSpritesheetForImage(image) {
   let bestClusters = palettize(imageData);
   let bestScore = 0;
   let bestName = null;
+  let scoredNames = [];
   for (let name of Object.keys(spritesheets)) {
     let sheet = spritesheets[name];
     if (!sheet) {
       continue;
     }
     let score = getSpritesheetScore(sheet, bestClusters);
-    if (score < bestScore || !bestName) {
-      bestScore = score;
-      bestName = name;
+    if (name === 'kina-nothoughts') {
+      score += 0.1;
+    } else if (name === 'air') {
+      score += 0.04;
+    } else if (name === 'spirit') {
+      score += 0.04;
     }
+    scoredNames.push({ score, name });
   }
+  scoredNames.sort((a, b) => {
+    return a.score - b.score;
+  });
+  bestScore = scoredNames[0].score;
+  bestName = scoredNames[0].name;
+
   if (bestName) {
-    console.log('best', bestName);
-    return await getPalettedSpritesheet(spritesheets[bestName], bestClusters);
+    if (DEBUG) {
+      console.log('best', bestName, scoredNames);
+    }
+    return {
+      sheetName: bestName,
+      palette: bestClusters,
+    };
   } else {
     console.error('unable to find spritesheet');
+    return null;
   }
+}
+
+export async function getSpritesheetFromSavedResults(sheetName, palette) {
+  let sheet = spritesheets[sheetName];
+  if (!sheet) {
+    return;
+  }
+  const sheetUrl = await getPalettedSpritesheet(sheet, palette);
+  return sheetUrl;
 }
 
 function palettize(imageData) {
@@ -114,7 +140,6 @@ function loadSpritesheet(url) {
 }
 
 function getSpritesheetScore(imageData, bestClusters) {
-  // TODO compare score to all other spritesheet options
   let score = 0;
   let scoreCount = 0;
 
@@ -122,8 +147,9 @@ function getSpritesheetScore(imageData, bestClusters) {
   let width = imageData.width;
   let uses = new Array(bestClusters.length).fill(0);
 
+  let skipCount = 5;
   for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+    for (let x = y % skipCount; x < width; x += skipCount) {
       let minDist = 256 * 256 * 3;
       let assignment = 0;
       let r = imageData.data[(y * imageData.width + x) * 4 + 0]
@@ -159,9 +185,7 @@ function getSpritesheetScore(imageData, bestClusters) {
     }
     entropy -= uses[i] / scoreCount * Math.log(uses[i] / scoreCount);
   }
-  console.log('entropy', entropy);
   return -entropy;
-  // return score / scoreCount;
 }
 
 function getPalettedSpritesheet(imageData, bestClusters) {

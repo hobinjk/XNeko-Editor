@@ -84,6 +84,7 @@ export const bedTemplate = PropTemplate.deserialize({
   spots: [
     { x: 16, y: 0, allowedActions: [Actions.sleep] },
   ],
+  // src: browser.runtime.getURL('/features/xneko/dithers/brownbed.png'),
   src: 'dithers/brownbed.png',
 });
 
@@ -93,6 +94,7 @@ export const bookshelfTemplate = PropTemplate.deserialize({
   isFloorProp: false,
   spots: [
   ],
+  // src: browser.runtime.getURL('/features/xneko/dithers/shelf.png'),
   src: 'dithers/shelf.png',
   spots: [
     {
