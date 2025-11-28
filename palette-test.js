@@ -1,6 +1,6 @@
 import { ActionManager } from "./ActionManager";
 import { Neko } from "./Neko";
-import { getBestSpritesheetForImage } from "./palette";
+import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./palette";
 
 let input = document.getElementById('image-input');
 
@@ -14,8 +14,13 @@ function onUploadImageChange(event) {
     let image = document.createElement('img');
     image.src = reader.result;
     image.onload = async () => {
-      let sheetUrl = await getBestSpritesheetForImage(image);
-      cats.push(new Neko('custom', sheetUrl));
+      let results = await getBestPaletteAndSpritesheetForImage(image);
+      const sheetUrl = await getSpritesheetFromSavedResults(results.sheetName, results.palette);
+      cats.push(new Neko(actionManager, 'custom', sheetUrl, 90000000, {
+        avatarSrc: reader.result,
+        postUrl: '',
+        visitCount: 0,
+      }));
     };
   };
   reader.readAsDataURL(file);

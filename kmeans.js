@@ -38,11 +38,18 @@ function getClusterCenter(cluster, points) {
     z += point.z;
     count += 1;
   }
+  if (count === 0) {
+    return { x, y, z };
+  }
   return {
     x: x / count,
     y: y / count,
     z: z / count,
   };
+}
+
+function pointHash(point) {
+  return Math.round(point.x) << 16 + Math.round(point.y) << 8 + Math.round(point.z);
 }
 
 export function kMeans(k, points) {
@@ -52,15 +59,16 @@ export function kMeans(k, points) {
   while (centers.length < k) {
     let idx = Math.round(Math.random() * points.length);
     // k means++ improvement (weighting by distance to current clusters)
+    let defaulting = false;
     if (centers.length > 0) {
       let weights = new Array(points.length);
       let totalWeight = 0;
       for (let i = 0; i < points.length; i++) {
-        if (usedAsCenter[i]) {
+        let point = points[i];
+        if (usedAsCenter[pointHash(point)]) {
           weights[i] = 0;
           continue;
         }
-        let point = points[i];
         let weight = Number.MAX_VALUE;
         for (let center of centers) {
           weight = Math.min(weight, distanceSquared(point, center));
@@ -68,6 +76,15 @@ export function kMeans(k, points) {
         weight += 1;
         totalWeight += weight;
         weights[i] = weight;
+      }
+
+      defaulting = totalWeight === 0;
+      // Default to random choice
+      if (defaulting) {
+        for (let i = 0; i < weights.length; i++) {
+          weights[i] = 1;
+          totalWeight += 1;
+        }
       }
 
       let choice = Math.random() * totalWeight;
@@ -79,11 +96,11 @@ export function kMeans(k, points) {
         choice -= weights[i];
       }
     }
-    if (usedAsCenter[idx]) {
+    let point = points[idx];
+    if (usedAsCenter[pointHash(point)] && !defaulting) {
       continue;
     }
-    usedAsCenter[idx] = true;
-    let point = points[idx];
+    usedAsCenter[pointHash(point)] = true;
     centers.push({
       x: point.x,
       y: point.y,

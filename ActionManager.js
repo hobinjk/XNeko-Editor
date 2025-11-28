@@ -1,5 +1,33 @@
 import { Spritesheet } from "./Neko.js";
 
+export const Actions = {
+  sleep: 'sleep',
+  itch: 'itch',
+  scratch: 'scratch',
+  wscratch: 'wscratch',
+  escratch: 'escratch',
+  nscratch: 'wscratch',
+  sscratch: 'escratch',
+  wash: 'wash',
+  alert: 'alert',
+  still: 'still',
+  yawn: 'yawn',
+};
+
+const ActionBaseDurations = {
+  sleep: 30000,
+  itch: 10000,
+  scratch: 20000,
+  wscratch: 20000,
+  escratch: 20000,
+  nscratch: 20000,
+  sscratch: 20000,
+  wash: 10000,
+  alert: 3000,
+  still: 3000,
+  yawn: 3000,
+};
+
 export class ActionManager {
   constructor(cats, props, editorMode) {
     this.cats = cats;
@@ -7,6 +35,8 @@ export class ActionManager {
     this.actions = new Array(this.cats.length);
     this.lastUpdate = Date.now();
     this.editorMode = editorMode;
+
+    this.triggerOnChanges = this.triggerOnChanges.bind(this);
 
     this.onChanges = [];
   }
@@ -26,7 +56,9 @@ export class ActionManager {
   }
 
   addProp(prop) {
-    this.props.push(prop);
+    if (!this.props.includes(prop)) {
+      this.props.push(prop);
+    }
     prop.addOnChange(this.triggerOnChanges);
     this.triggerOnChanges(prop);
   }
@@ -38,6 +70,8 @@ export class ActionManager {
   }
 
   removeCatAtIndex(catIndex) {
+    let cat = this.cats[catIndex];
+    cat.remove();
     this.cats.splice(catIndex, 1);
     this.actions.splice(catIndex, 1);
   }
@@ -49,9 +83,9 @@ export class ActionManager {
       let action = this.actions[i];
       if (!action || action.duration < 0) {
         if (cat.visitDurationLeft < 0 && (
-          cat.x < 100 ||
+          cat.x < -100 ||
           cat.x > innerWidth + 100 ||
-          cat.y < 100 ||
+          cat.y < -100 ||
           cat.y > innerHeight + 100)) {
           this.removeCatAtIndex(i);
           // Repeat this index since we just moved the next cat in line here
@@ -99,15 +133,14 @@ export class ActionManager {
     }
     let directedActions = [];
 
-    let baseDuration = this.editorMode ? 3000 : 20000;
-    let scaledDuration = this.editorMode ? 3000 : 40000;
     for (let prop of this.props) {
       for (let spot of prop.spots) {
         if (spot.occupied) {
           continue;
         }
-        let duration = Math.random() * scaledDuration + baseDuration;
-        directedActions.push(new PropSpotAction(cat, prop, spot, duration));
+        let targetAction = spot.allowedActions[Math.floor(Math.random() * spot.allowedActions.length)];
+        let duration = (0.5 + Math.random()) * (ActionBaseDurations[targetAction] || 3000);
+        directedActions.push(new PropSpotAction(cat, prop, spot, targetAction, duration));
       }
     }
     let actions = directedActions;
@@ -130,9 +163,11 @@ export class ActionManager {
       'still',
       'yawn',
     ];
+
     let actions = [];
     for (let animation of animations) {
       let { x: targetX, y: targetY } = this.getEmptyLocation();
+      let duration = (0.5 + Math.random()) * (ActionBaseDurations[animation] || 3000);
       if (animation === 'scratch') {
         const dir = Math.floor(Math.random() * 4);
         if (dir === 0) {
@@ -148,11 +183,6 @@ export class ActionManager {
           animation = 'n' + animation;
           targetY = 16;
         }
-      }
-      let duration = Math.random() * 30000 + 5000;
-      let frameCount = Spritesheet[animation].length;
-      if (frameCount === 1) {
-        duration = Math.random() * 2000 + 1000;
       }
 
       actions.push(new UndirectedAction(
@@ -265,6 +295,7 @@ const ActionPhase = {
   runTo: 'runTo',
   jumpTo: 'jumpTo',
   climbTo: 'climbTo',
+  descendFrom: 'descendFrom',
   animate: 'animate',
 };
 
@@ -304,20 +335,21 @@ export class UndirectedAction extends Action {
 }
 
 class PropSpotAction extends Action {
-  constructor(cat, prop, spot, duration) {
+  constructor(cat, prop, spot, targetAnimation, duration) {
     super(cat);
     this.prop = prop;
     this.spot = spot;
     this.phase = ActionPhase.runTo;
+    this.targetX = prop.x + spot.x;
+    this.targetY = prop.y + spot.y;
+
     this.spotOffGround = false;
-    if (spot.y <= prop.height - 16) {
+    if (spot.y <= prop.height - 16 && !prop.propTemplate.isFloorProp) {
       this.spotOffGround = true;
+      this.targetY = prop.y + Math.max(spot.y, prop.height - 16);
     }
 
-    this.targetX = prop.x + spot.x;
-    this.targetY = prop.y + Math.max(spot.y, prop.height - 16);
-
-    this.targetAnimation = spot.allowedActions[Math.floor(Math.random() * spot.allowedActions.length)];
+    this.targetAnimation = targetAnimation;
     this.duration = duration;
   }
 
@@ -344,6 +376,9 @@ class PropSpotAction extends Action {
           this.cat.y -= 8;
           this.phase = ActionPhase.animate;
           break;
+        case ActionPhase.descendFrom:
+          this.duration = -1;
+          break;
         default:
           break;
       }
@@ -357,10 +392,19 @@ class PropSpotAction extends Action {
         this.duration -= dt;
         if (this.duration < 0) {
           this.spot.occupied = false;
+          if (this.spotOffGround) {
+            this.phase = ActionPhase.descendFrom;
+            this.targetY = this.prop.y + this.prop.height - 16;
+            this.duration = 1;
+          }
         }
         this.cat.z = this.prop.z + 5;
         break;
       case ActionPhase.climbTo:
+        this.updateClimbTo(dt, this.targetX, this.targetY);
+        this.cat.z = this.prop.z + 10;
+        break;
+      case ActionPhase.descendFrom:
         this.updateClimbTo(dt, this.targetX, this.targetY);
         this.cat.z = this.prop.z + 10;
         break;

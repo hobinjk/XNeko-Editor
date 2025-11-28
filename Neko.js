@@ -15,98 +15,7 @@ export const catNames = [
   'water',
 ];
 
-export const allCatNames = [
-  'ace',
-  'air',
-  'anik',
-  // 'alien',
-  'black',
-  'black2',
-  // 'blue-marine',
-  'blue-tabby',
-  'blue',
-  'boobookitty',
-  // 'brown-bsd-daemon',
-  'brown-dog',
-  'calico-tabby',
-  'calico',
-  // 'captain-goodnight',
-  // 'caz',
-  // 'coke-bottle',
-  // 'colourful',
-  // 'dave',
-  'deedee',
-  'dog',
-  // 'doom',
-  'earth',
-  // 'face',
-  'fancy',
-  // 'ff3mog',
-  'fire',
-  // 'ghetto',
-  'ghost',
-  'gray',
-  // 'green-ghost',
-  // 'holiday',
-  'jess',
-  'kina-nothoughts',
-  'kuramecha',
-  'lucky',
-  // 'lucy-dog',
-  'lucy',
-  'marmalade',
-  'mermaid',
-  // 'metroid',
-  'mike',
-  // 'mini',
-  'moka',
-  // 'multi',
-  // 'nekocool',
-  'neon',
-  'orange',
-  // 'pac-man',
-  'peach',
-  // 'penguin-2',
-  // 'penguin',
-  'pink-nose-neko',
-  'pink',
-  // 'rainbow',
-  // 'red-bsd-daemon',
-  'robot',
-  // 'rocket',
-  'rose',
-  'royal',
-  'silver',
-  'silversky',
-  // 'skunk',
-  'socks',
-  // 'sonic',
-  'spirit',
-  'spooky',
-  'tabby',
-  // 'tentacle',
-  // 'tie-fighter',
-  // 'turtle',
-  'usa',
-  'valentine',
-  'water',
-  'white',
-  // 'worms',
-  // 'zelda3',
-];
-
 const ANIMATION_FPS = 10;
-export const Actions = {
-  sleep: 'sleep',
-  itch: 'itch',
-  scratch: 'scratch',
-  wscratch: 'wscratch',
-  escratch: 'escratch',
-  wash: 'wash',
-  alert: 'alert',
-  still: 'still',
-  yawn: 'yawn',
-};
 
 export const Spritesheet = {
   alert: [{ x: 32, y: 0 }],
@@ -164,13 +73,11 @@ export class Neko {
     this.animationIndex = 0;
     this.animationScale = 1;
 
-    if (this.data) {
-      this.createInfoCard();
+    this.createInfoCard();
 
-      this.infoCard.classList.add('info-card-open');
-      this.showingInitialInfoCard = true;
-      this.closeInfoCardTimeout = null;
-    }
+    this.infoCard.classList.add('info-card-open');
+    this.showingInitialInfoCard = true;
+    this.closeInfoCardTimeout = null;
 
     this.createHeart();
 
@@ -208,7 +115,7 @@ export class Neko {
     post.href = this.data.postUrl;
 
     let visits = this.infoCard.querySelector('.info-card-visit-count');
-    visits.textContent = 4;
+    visits.textContent = this.data.visitCount || 1;
 
     this.elt.appendChild(this.infoCard);
   }
@@ -223,17 +130,11 @@ export class Neko {
 
 
   onPointerMove() {
-    if (!this.infoCard) {
-      return;
-    }
     this.openInfoCard();
     this.closeInfoCard(5000);
   }
 
   onPointerDown() {
-    if (!this.actionManager) {
-      return;
-    }
     let action = new UndirectedAction(
       this,
       'alert',
