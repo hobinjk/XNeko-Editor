@@ -1,4 +1,4 @@
-import { kMeans, distanceSquared, distance, silhouette } from "./kmeans.js";
+import { kMeans, distanceSquared, distance } from "./kmeans.js";
 import { catNames } from "./Neko.js";
 
 const DEBUG = true;
@@ -10,7 +10,9 @@ export async function getBestPaletteAndSpritesheetForImage(image) {
   canvas.width = width;
   canvas.height = height;
   let gfx = canvas.getContext('2d');
-  document.body.appendChild(canvas);
+  if (DEBUG) {
+    document.body.appendChild(canvas);
+  }
   gfx.drawImage(image, 0, 0, width, height);
   let imageData = gfx.getImageData(0, 0, width, height);
   let bestClusters = palettize(imageData);
@@ -80,26 +82,26 @@ function palettize(imageData) {
     }
   }
 
-  let bestClusters = null;
-  let bestScore = -100;
+  // let bestClusters = null;
+  // let bestScore = -100;
 
   let allClusters = [];
-  // const k = 8;
-  for (let k = 2; k < 10; k++) {
-    let clusters = kMeans(k, points);
-    allClusters.push(clusters);
-    let score = silhouette(points, clusters);
-    if (score > bestScore) {
-      bestScore = score;
-      bestClusters = clusters;
-    }
-  }
+  // for (let k = 2; k < 10; k++) {
+  const k = 5;
+  let clusters = kMeans(k, points);
+  allClusters.push(clusters);
+  // let score = silhouette(points, clusters);
+  // if (score > bestScore) {
+  //   bestScore = score;
+  //   bestClusters = clusters;
+  // }
+  // }
+  // bestClusters = allClusters[6];
 
-  console.log(bestClusters);
   if (DEBUG) {
     drawPalettes(allClusters);
   }
-  return bestClusters;
+  return clusters;
 }
 
 function drawPalettes(allClusters) {
@@ -156,21 +158,27 @@ function getSpritesheetScore(imageData, bestClusters) {
     for (let x = y % skipCount; x < width; x += skipCount) {
       let minDist = 256 * 256 * 3;
       let assignment = 0;
-      let r = imageData.data[(y * imageData.width + x) * 4 + 0]
-      let g = imageData.data[(y * imageData.width + x) * 4 + 1]
-      let b = imageData.data[(y * imageData.width + x) * 4 + 2]
-      let a = imageData.data[(y * imageData.width + x) * 4 + 3]
+      let r = imageData.data[(y * imageData.width + x) * 4 + 0];
+      let g = imageData.data[(y * imageData.width + x) * 4 + 1];
+      let b = imageData.data[(y * imageData.width + x) * 4 + 2];
+      let a = imageData.data[(y * imageData.width + x) * 4 + 3];
       if (a < 10) {
         continue;
       }
 
       let point = {
-        x: r,
-        y: g,
-        z: b,
+        x: r + g + b,
+        y: g * 0,
+        z: b * 0,
       };
       for (let i = 0; i < bestClusters.length; i++) {
-        let dist = distance(point, bestClusters[i]);
+        let clop = {
+          x: bestClusters[i].x + bestClusters[i].y + bestClusters[i].z,
+          y: 0,
+          z: 0,
+        };
+        // let dist = distance(point, bestClusters[i]);
+        let dist = distance(point, clop); // bestClusters[i]);
         if (dist >= minDist) {
           continue;
         }
@@ -252,7 +260,7 @@ async function loadSpritesheets() {
     let url = `spritesheets/${name}.png`
     spritesheets[name] = await loadSpritesheet(url);
   }
-  console.log('done', spritesheets);
+  if (DEBUG) console.log('done', spritesheets);
 }
 
 loadSpritesheets();
