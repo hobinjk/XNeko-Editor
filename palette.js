@@ -90,6 +90,10 @@ function palettize(imageData) {
   const k = 5;
   let clusters = kMeans(k, points);
   allClusters.push(clusters);
+  {
+    let clusters = kMeans(k, points);
+    allClusters.push(clusters);
+  }
   // let score = silhouette(points, clusters);
   // if (score > bestScore) {
   //   bestScore = score;
@@ -98,6 +102,7 @@ function palettize(imageData) {
   // }
   // bestClusters = allClusters[6];
 
+  // console.log(bestScore, bestClusters);
   if (DEBUG) {
     drawPalettes(allClusters);
   }
@@ -153,6 +158,15 @@ function getSpritesheetScore(imageData, bestClusters) {
   let width = imageData.width;
   let uses = new Array(bestClusters.length).fill(0);
 
+  const bestClustersGray = bestClusters.map((bestCluster) => {
+    // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
+    return {
+      x: bestCluster.x * 0.299 + bestCluster.y * 0.587 + bestCluster.z * 0.114,
+      y: 0,
+      z: 0,
+    };
+  });
+
   let skipCount = 5;
   for (let y = 0; y < height; y++) {
     for (let x = y % skipCount; x < width; x += skipCount) {
@@ -166,19 +180,15 @@ function getSpritesheetScore(imageData, bestClusters) {
         continue;
       }
 
+      // Simplify to grayscale
       let point = {
-        x: r + g + b,
-        y: g * 0,
-        z: b * 0,
+        x: r * 0.299 + g * 0.587 + b * 0.114,
+        y: 0,
+        z: 0,
       };
       for (let i = 0; i < bestClusters.length; i++) {
-        let clop = {
-          x: bestClusters[i].x + bestClusters[i].y + bestClusters[i].z,
-          y: 0,
-          z: 0,
-        };
-        // let dist = distance(point, bestClusters[i]);
-        let dist = distance(point, clop); // bestClusters[i]);
+        let bcg = bestClustersGray[i];
+        let dist = distance(point, bcg);
         if (dist >= minDist) {
           continue;
         }
