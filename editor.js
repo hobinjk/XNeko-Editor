@@ -75,11 +75,11 @@ function onPropChange() {
   // }
 }
 gui.add(prop, 'isFloorProp').name('Prop lies flat on floor').onChange(onPropChange);
-let widthControl = gui.add(prop, 'width').onChange(onPropChange);
-let heightControl = gui.add(prop, 'height').onChange(onPropChange);
+let widthControl = gui.add(prop, 'width').onChange(onPropChange).name('Width');
+let heightControl = gui.add(prop, 'height').onChange(onPropChange).name('Height');
 gui.add(prop, 'uploadImage').name('Upload Image');
-gui.add(prop, 'addSpot').onChange(onPropChange);
-gui.add(prop, 'save');
+gui.add(prop, 'addSpot').onChange(onPropChange).name('Add Spot');
+gui.add(prop, 'save').name('Copy to Clipboard');
 
 uploadImageInput.onchange = onUploadImageChange;
 

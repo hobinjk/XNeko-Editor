@@ -9,7 +9,9 @@ export class AnimatingCatsSpotPalette {
 
     this.spotCats = [];
     for (let i = 0; i < animations.length; i++) {
-      let animCat = new Neko(null, 'kina-nothoughts', null, 10000000, null);
+      let animCat = new Neko(null, 'kina-nothoughts', null, 10000000, {
+      });
+      animCat.closeInfoCard(0);
       let animation = animations[i];
       animCat.setAnimation(animation);
       animCat.x = 44;
