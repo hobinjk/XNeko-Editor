@@ -34,15 +34,22 @@ let prop = {
     let aaMap = {
     };
     for (let allowedAction of ALLOWED_ACTIONS) {
-      aaMap[allowedAction] = false;
+      aaMap[allowedAction] = spot.allowedActions.includes(allowedAction);
       let control = aaFolder.add(aaMap, allowedAction);
       control.onChange(() => {
         spot.allowedActions = ALLOWED_ACTIONS.filter(action => aaMap[action]);
         onPropChange();
       });
     }
-
+    spot.remove = () => {
+      prop.spots = prop.spots.filter(propSpot => propSpot.id !== spot.id);
+      folder.destroy();
+    };
+    folder.add(spot, 'remove').onChange(onPropChange).name('Remove Spot');
     spotId += 1;
+  },
+  toggleCatsForSpots: function() {
+    palette.toggleCatsForSpots();
   },
   save: function() {
     const template = actionManager.props[0].propTemplate.serialize();
@@ -79,6 +86,7 @@ let widthControl = gui.add(prop, 'width').onChange(onPropChange).name('Width');
 let heightControl = gui.add(prop, 'height').onChange(onPropChange).name('Height');
 gui.add(prop, 'uploadImage').name('Upload Image');
 gui.add(prop, 'addSpot').onChange(onPropChange).name('Add Spot');
+gui.add(prop, 'toggleCatsForSpots').name('Toggle Cats At Spots');
 gui.add(prop, 'save').name('Copy to Clipboard');
 
 uploadImageInput.onchange = onUploadImageChange;

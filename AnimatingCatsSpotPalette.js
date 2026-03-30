@@ -1,42 +1,58 @@
-import { Neko, Spritesheet, catNames } from './Neko.js';
 import { SpotNeko } from './SpotNeko.js';
-
-const animations = Object.keys(Spritesheet);
 
 export class AnimatingCatsSpotPalette {
   constructor(propTemplate) {
-    this.cats = [];
-
     this.spotCats = [];
-    for (let i = 0; i < animations.length; i++) {
-      let animCat = new Neko(null, 'kina-nothoughts', null, 10000000, {
-      });
-      animCat.closeInfoCard(0);
-      let animation = animations[i];
-      animCat.setAnimation(animation);
-      animCat.x = 44;
-      animCat.y = 40 + 40 * i;
-      this.cats.push(animCat);
+    this.propTemplate = propTemplate;
+    this.animationIndex = 0;
+    this.showCatsForSpots();
+    this.showingCats = true;
+  }
 
-      animCat.elt.addEventListener('pointerdown', (event) => {
-        console.log('yep clock');
-        propTemplate.addSpot();
-        let spotId = propTemplate.spots.at(-1).id;
-        let spotCat = new SpotNeko('kina-nothoughts', propTemplate, spotId);
-        spotCat.setAnimation(animation);
-        spotCat.moveTo(event.clientX, event.clientY);
-        spotCat.onPointerDown();
-        this.spotCats.push(spotCat);
-      });
+  toggleCatsForSpots() {
+    if (this.showingCats) {
+      this.hideCatsForSpots();
+    } else {
+      this.showCatsForSpots(true);
     }
   }
 
-  update() {
-    for (let cat of this.cats) {
-      cat.update(0);
+  showCatsForSpots(updateAnimation) {
+    this.showingCats = true;
+    while (this.spotCats.length > this.propTemplate.spots.length) {
+      this.spotCats.pop().remove();
     }
+    for (let i = 0; i < this.propTemplate.spots.length; i++) {
+      let spot = this.propTemplate.spots[i];
+      const addingCat = !this.spotCats[i];
+      if (addingCat) {
+        let cat = new SpotNeko('kina-nothoughts', this.propTemplate, spot.id);
+        this.spotCats.push(cat);
+      }
+      let cat = this.spotCats[i];
+      cat.moveTo(spot.x + window.innerWidth / 2, spot.y + window.innerHeight / 2);
+      if (addingCat || updateAnimation) {
+        let animation = spot.allowedActions[this.animationIndex % spot.allowedActions.length];
+        this.animationIndex += 1;
+        cat.setAnimation(animation);
+      }
+    }
+  }
+
+  hideCatsForSpots() {
+    this.showingCats = false;
+    for (const cat of this.spotCats) {
+      cat.remove();
+    }
+    this.spotCats = [];
+  }
+
+  update() {
     for (let cat of this.spotCats) {
       cat.update(0);
+    }
+    if (this.showingCats) {
+      this.showCatsForSpots(false);
     }
   }
 }
